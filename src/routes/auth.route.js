@@ -5,12 +5,13 @@ import {
   refreshToken,
   getMe,
 } from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
 router.post("/signin", signin);
 router.post("/signup", signup);
 router.get("/refreshToken", refreshToken);
-router.get("/me", getMe);
+router.get("/me", authenticate, getMe);
 
 export default router;
