@@ -112,3 +112,18 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const signout = async (req, res) => {
+  try {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({ message: "로그아웃 성공" });
+  } catch (err) {
+    console.error("로그아웃 오류:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
