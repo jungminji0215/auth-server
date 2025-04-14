@@ -13,10 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Post {
+  id        Int      @id @default(autoincrement()) @map("id")
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int      @map("author_id")
+
+  @@map("posts")
+}
+
 model User {
   id       Int    @id @default(autoincrement()) @map("id")
   email    String @unique
   password String
+  posts    Post[]
 
   @@map("users")
 }
