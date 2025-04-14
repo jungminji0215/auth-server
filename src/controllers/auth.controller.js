@@ -1,6 +1,10 @@
 import { comparePassword, hashPassword } from "../libs/hash.js";
 import { PrismaClient } from "@prisma/client";
-import { generateAccessToken, generateRefreshToken } from "../libs/jwt.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../libs/jwt.js";
 
 const prisma = new PrismaClient();
 
@@ -66,6 +70,45 @@ export const signin = async (req, res) => {
     });
   } catch (err) {
     console.error("로그인 오류:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: "Refresh token 없음" });
+  }
+
+  try {
+    const decoded = verifyRefreshToken(token);
+    const newAccessToken = generateAccessToken({ userId: decoded.userId });
+
+    return res.status(200).json({ accessToken: newAccessToken });
+  } catch (err) {
+    console.error("토큰 재발급 오류:", err);
+    return res.status(403).json({ message: "Refresh token이 유효하지 않음" });
+  }
+};
+
+// 	accessToken이 없거나 잘못됨 → auth 미들웨어에서 401 응답 처리되므로 getMe까지 도달하지 못함
+export const getMe = async (req, res) => {
+  const { userId } = req; // 나중에 auth 미들웨어에서 넣어줄 값
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, createdAt: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error("사용자 조회 오류:", err);
     res.status(500).json({ message: err.message });
   }
 };
