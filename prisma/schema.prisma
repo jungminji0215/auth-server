@@ -30,3 +30,6 @@ model User {
 
   @@map("users")
 }
+
+
+// npx prisma migrate dev --name [add-post-model]
