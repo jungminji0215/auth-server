@@ -4,7 +4,7 @@ export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "토큰이 없습니다." });
+    return res.status(401).json({ message: "유효하지 않은 사용자입니다." });
   }
 
   const token = authHeader.split(" ")[1];

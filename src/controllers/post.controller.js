@@ -8,20 +8,12 @@ export const getAllPosts = async (req, res) => {
       orderBy: {
         id: "desc",
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
     });
 
     return res.status(200).json({ posts });
   } catch (err) {
     console.error("게시글 조회 오류:", err);
-    return res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: "오류가 발생했습니다." });
   }
 };
 
@@ -45,6 +37,6 @@ export const createPost = async (req, res) => {
     return res.status(201).json({ post });
   } catch (err) {
     console.error("게시글 등록 오류:", err);
-    return res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: "오류가 발생했습니다." });
   }
 };
