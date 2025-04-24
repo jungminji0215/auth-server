@@ -94,26 +94,70 @@ export const refreshToken = async (req, res) => {
 };
 
 // 	accessToken이 없거나 잘못됨 → auth 미들웨어에서 401 응답 처리되므로 getMe까지 도달하지 못함
-export const getMe = async (req, res) => {
-  const { userId } = req; // 나중에 auth 미들웨어에서 넣어줄 값
+// export const getMe = async (req, res) => {
+//   const { userId } = req; // 나중에 auth 미들웨어에서 넣어줄 값
+//
+//   try {
+//     const user = await prisma.user.findUnique({
+//       where: { id: userId },
+//       select: { id: true, email: true },
+//     });
+//
+//     if (!user) {
+//       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+//     }
+//
+//     const accessToken = generateAccessToken({ userId });
+//
+//     res.status(200).json({ user, accessToken });
+//   } catch (err) {
+//     console.error("사용자 조회 오류:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
 
-  console.log("get Me");
+export const getMe = async (req, res) => {
+  // 1) HTTP Only 쿠키에서 리프레시 토큰 꺼내기
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ message: "인증된 토큰이 없습니다." });
+  }
+
+  let payload;
   try {
+    // 2) 리프레시 토큰 검증 (만료·위조 검사)
+    payload = verifyRefreshToken(refreshToken);
+  } catch (err) {
+    console.error("리프레시 토큰 검증 실패:", err);
+    return res.status(401).json({ message: "유효하지 않은 토큰입니다." });
+  }
+
+  const userId = payload.userId;
+  try {
+    // 3) 사용자 조회
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true },
     });
-
-    console.log("user : ", user);
-
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
 
-    res.status(200).json({ user });
+    // 4) 새 액세스 토큰 발급
+    const newAccessToken = generateAccessToken({ userId });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 전송
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+    });
+
+    // 5) 본문에 유저 정보와 새 토큰 반환
+    return res.status(200).json({ user, accessToken: newAccessToken });
   } catch (err) {
     console.error("사용자 조회 오류:", err);
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
   }
 };
 
