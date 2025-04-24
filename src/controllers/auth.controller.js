@@ -35,6 +35,7 @@ export const signup = async (req, res) => {
 };
 
 export const signin = async (req, res) => {
+  console.log("============ signin ============");
   const { email, password } = req.body;
 
   try {
@@ -96,11 +97,14 @@ export const refreshToken = async (req, res) => {
 export const getMe = async (req, res) => {
   const { userId } = req; // 나중에 auth 미들웨어에서 넣어줄 값
 
+  console.log("get Me");
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, createdAt: true },
+      select: { id: true, email: true },
     });
+
+    console.log("user : ", user);
 
     if (!user) {
       return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
