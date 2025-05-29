@@ -16,6 +16,6 @@ export const authenticate = (req, res, next) => {
     req.userId = decoded.userId;
     next();
   } catch (err) {
-    return res.status(403).json({ message: "유효하지 않은 토큰입니다." });
+    return res.status(401).json({ message: "유효하지 않은 토큰입니다." });
   }
 };

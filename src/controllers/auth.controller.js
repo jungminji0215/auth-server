@@ -8,7 +8,7 @@ import {
 
 const prisma = new PrismaClient();
 
-// TODO 회원가입 시 email, password의 유효성 검사
+// 회원가입 시 email, password의 유효성 검사해야함
 export const signup = async (req, res) => {
   const { email, password } = req.body;
 
@@ -109,6 +109,25 @@ export const getMe = async (req, res) => {
   } catch (err) {
     console.error("사용자 조회 오류:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const getSession = async (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) return res.json({ isLoggedIn: false });
+
+  try {
+    const payload = verifyRefreshToken(token);
+    const newAccessToken = generateAccessToken({ userId: payload.userId });
+
+    return res.status(200).json({
+      isLoggedIn: true,
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    console.log("error : ", error);
+    return res.json({ isLoggedIn: false });
   }
 };
 

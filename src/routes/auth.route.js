@@ -5,6 +5,7 @@ import {
   refreshToken,
   getMe,
   signout,
+  getSession,
 } from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -15,6 +16,7 @@ router.post("/signup", signup);
 router.post("/signout", authenticate, signout);
 
 router.get("/refreshToken", refreshToken);
+router.get("/session", getSession);
 router.get("/me", authenticate, getMe);
 
 export default router;
